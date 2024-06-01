@@ -1,16 +1,14 @@
-import { ClerkProvider, useOAuth } from '@clerk/clerk-expo';
+import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts } from 'expo-font';
 import { Slot, Stack, useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY as string;
 
-const tokenCash: any = {
+const tokenCache: any = {
   async getToken(key: string) {
     try {
       return SecureStore.getItemAsync(key);
@@ -32,29 +30,30 @@ const tokenCash: any = {
 const InitialLayout = () => {
   const router = useRouter();
   const segments = useSegments();
-  const { isLoaded, isSignedIn } = useOAuth();
 
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/font/SpaceMono-Regular.ttf'),
-  });
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+  const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     if (!isLoaded) return;
-    const segment = segments[0];
-    console.log('segments', segment);
-  }, [isSignedIn]);
+    const inAuthGroup = segments[0] === '(auth)';
+    console.log('🚀 inAuthGroup', inAuthGroup);
+    console.log('🚀 signedin', isSignedIn);
+
+    if (isSignedIn && !inAuthGroup) {
+      // bring the user inside
+      router.replace('/(auth)/(drawer)/(chat)/new');
+    } else if (!isSignedIn && inAuthGroup) {
+      // kick the user out
+      router.replace('/');
+    }
+  }, [isSignedIn, segments, router]);
 
   if (!isLoaded) {
-    return <Slot />;
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
   return (
@@ -72,16 +71,24 @@ const InitialLayout = () => {
           ),
         }}
       />
+      <Stack.Screen
+        name="(auth)"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 };
 
-export const RootLayoutNav = () => {
+const RootLayoutNav = () => {
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCash}>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!} tokenCache={tokenCache}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <InitialLayout />
       </GestureHandlerRootView>
     </ClerkProvider>
   );
 };
+
+export default RootLayoutNav;

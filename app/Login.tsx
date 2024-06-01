@@ -1,3 +1,4 @@
+import { useSignIn, useSignUp } from '@clerk/clerk-expo';
 import Colors from 'constants/Colors';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
@@ -18,54 +19,47 @@ import { defaultStyles } from '~/constants/styles';
 
 const Login = () => {
   const { type } = useLocalSearchParams<{ type: string }>();
-  //   const { signIn, setActive, isLoaded } = useSignIn();
-  //   const { signUp, isLoaded: signUpLoaded, setActive: signupSetActive } = useSignUp();
 
-  const [emailAddress, setEmailAddress] = useState('');
+  const [emailAddress, setEmailAddress] = useState('devs.rakibulislam@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  //   const onSignInPress = async () => {
-  //     if (!isLoaded) {
-  //       return;
-  //     }
-  //     setLoading(true);
-  //     try {
-  //       const completeSignIn = await signIn.create({
-  //         identifier: emailAddress,
-  //         password,
-  //       });
+  const { signIn, isLoaded, setActive } = useSignIn();
+  const { signUp, isLoaded: signUpLoaded, setActive: signupSetActive } = useSignUp();
 
-  //       // This indicates the user is signed in
-  //       await setActive({ session: completeSignIn.createdSessionId });
-  //     } catch (err: any) {
-  //       Alert.alert(err.errors[0].message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+  const onSignUpPress = async () => {
+    if (!signUpLoaded) return;
+    setLoading(true);
 
-  //   const onSignUpPress = async () => {
-  //     if (!signUpLoaded) {
-  //       return;
-  //     }
-  //     setLoading(true);
+    try {
+      const result = await signUp.create({ emailAddress, password });
+      console.log(result);
+      signupSetActive({
+        session: result.createdSessionId,
+      });
+    } catch (error: any) {
+      Alert.alert(error?.errors[0]?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  //     try {
-  //       // Create the user on Clerk
-  //       const result = await signUp.create({
-  //         emailAddress,
-  //         password,
-  //       });
+  const onSignInPress = async () => {
+    if (!isLoaded) return;
 
-  //       // This indicates the user is signed in
-  //       signupSetActive({ session: result.createdSessionId });
-  //     } catch (err: any) {
-  //       alert(err.errors[0].message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+    setLoading(true);
+
+    try {
+      const result = await signIn.create({ identifier: emailAddress, password });
+      setActive({
+        session: result.createdSessionId,
+      });
+    } catch (error: any) {
+      Alert.alert(error?.errors[0]?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -99,11 +93,15 @@ const Login = () => {
       </View>
 
       {type === 'login' ? (
-        <TouchableOpacity style={[defaultStyles.btn, styles.btnPrimary]}>
+        <TouchableOpacity
+          onPress={() => onSignInPress()}
+          style={[defaultStyles.btn, styles.btnPrimary]}>
           <Text style={styles.btnPrimaryText}>Login</Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity style={[defaultStyles.btn, styles.btnPrimary]}>
+        <TouchableOpacity
+          onPress={() => onSignUpPress()}
+          style={[defaultStyles.btn, styles.btnPrimary]}>
           <Text style={styles.btnPrimaryText}>Create account</Text>
         </TouchableOpacity>
       )}

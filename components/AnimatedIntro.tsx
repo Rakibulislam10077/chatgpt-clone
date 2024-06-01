@@ -12,8 +12,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ReText } from 'react-native-redash';
 
-import BottomLoginSheet from './BottomLoginSheet';
-
 import Colors from '~/constants/Colors';
 
 const content = [
