@@ -1,14 +1,16 @@
 import { Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { ScreenContent } from '~/components/ScreenContent';
+import AnimatedIntro from '~/components/AnimatedIntro';
+import BottomLoginSheet from '~/components/BottomLoginSheet';
 
 export default function Home() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Tab Two' }} />
+      <Stack.Screen options={{ title: 'Tab One' }} />
       <View style={styles.container}>
-        <ScreenContent path="app/(tabs)/two.tsx" title="Tab Two" />
+        <AnimatedIntro />
+        <BottomLoginSheet />
       </View>
     </>
   );
@@ -17,6 +19,5 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
   },
 });
